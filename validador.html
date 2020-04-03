@@ -1,0 +1,291 @@
+<html>
+
+<head>
+    <title>Validador </title>
+</head>
+
+<body>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-database.js"></script>
+
+
+    <script>
+        //https://stackoverflow.com/questions/51298432/how-can-i-push-to-2-different-firebase-projects-in-one-javascript-file
+        //Variaveis globais
+        var mHashMQTT;
+        var bpmMQTT;
+        var datariscoMQTT;
+        var idESP82MQTT;
+        var temperaturaMQTT;
+        var vezesMQTT;
+
+        //Camada 1
+        var mHashC1;
+        var bpmC1;
+        var datariscoC1;
+        var idESP82C1;
+        var temperaturaC1;
+        var vezesC1;
+
+
+        //Camada 2
+        var mHashC2;
+        var bpmC2;
+        var datariscoC2;
+        var idESP82C2;
+        var temperaturaC2;
+        var vezesC2;
+
+
+        //Arrays
+        var arrDataRiscoMQTT = [];
+        var arrDataRiscoC1 = [];
+        var arrDataRiscoC2 = [];
+
+
+        var arrBPMMQTT = [];
+        var arrBPMC1 = [];
+        var arrBPMC2 = [];
+
+
+        var arridESP82MQTT = [];
+        var arridESP82C1 = [];
+        var arridESP82C2 = [];
+
+
+        var arrTemperaturaMQTT = [];
+        var arrTemperaturaC1 = [];
+        var arrTemperaturaC2 = [];
+
+
+        var arrVezesMQTT = [];
+        var arrVezesC1 = [];
+        var arrVezesC2 = [];
+
+        var arrHashMQTT = [];
+
+
+
+        //------------------------------------------Inicializando os banco de dados
+        const mqttApp = firebase.initializeApp({
+
+            apiKey: "AIzaSyCTE6-9akOrnkP9up6Rb16K37oZQPhHZaI",
+            authDomain: "mqttcontrole.firebaseapp.com",
+            databaseURL: "https://mqttcontrole.firebaseio.com",
+            projectId: "mqttcontrole",
+            storageBucket: "mqttcontrole.appspot.com",
+            messagingSenderId: "974936284084",
+            appId: "1:974936284084:web:d1879f1b19668d5ba1b0e1"
+
+        });
+
+        var refMQTT = mqttApp.database().ref("prontuario").child("uffdqqwl");
+
+        const camada1App = firebase.initializeApp({
+
+            apiKey: "AIzaSyBYXjTvzJ0FRmUfHCD7y-719nIyA_L8nJ8",
+            authDomain: "camada1.firebaseapp.com",
+            databaseURL: "https://camada1.firebaseio.com",
+            projectId: "camada1",
+            storageBucket: "camada1.appspot.com",
+            messagingSenderId: "238288802913",
+            appId: "1:238288802913:web:e4af954878600d03844620"
+
+
+
+        }, 'Camada 1');
+        var refCamada1 = camada1App.database().ref("prontuario").child("uffdqqwl");
+
+        const camada2App = firebase.initializeApp({
+
+            apiKey: "AIzaSyCziJ1jUtkBwPvYC4ByYiA6fONUbu_uyc0",
+            authDomain: "camada2.firebaseapp.com",
+            databaseURL: "https://camada2.firebaseio.com",
+            projectId: "camada2",
+            storageBucket: "camada2.appspot.com",
+            messagingSenderId: "300681473888",
+            appId: "1:300681473888:web:60510f478aa80e1460f805",
+            measurementId: "G-BQNFBHE4MJ"
+
+        }, 'Camada 2');
+
+        var refCamada2 = camada2App.database().ref("prontuario").child("uffdqqwl");
+
+
+
+        //pegando informação para teste
+        refMQTT.on("child_added", snap => {
+
+
+            mHashMQTT = snap.key;
+            bpmMQTT = snap.child("bpm").val();
+            datariscoMQTT = snap.child("datarisco").val();
+            idESP82MQTT = snap.child("idESP82").val();
+            temperaturaMQTT = snap.child("temperatura").val();
+            vezesMQTT = snap.child("vezes").val();
+
+            //console.log("Data",datariscoMQTT);
+
+            arrDataRiscoMQTT.push(datariscoMQTT);
+            arrBPMMQTT.push(bpmMQTT);
+            arridESP82MQTT.push(idESP82MQTT);
+            arrTemperaturaMQTT.push(temperaturaMQTT);
+            arrVezesMQTT.push(vezesMQTT);
+
+
+
+            arrHashMQTT.push(mHashMQTT);
+
+
+        });
+
+
+        //------Pegando dados da camada 1
+
+        refCamada1.on("child_added", snap => {
+
+
+
+            mHashC1 = snap.key;
+            previousHashC1 = snap.child("previousHash").val();
+            bpmC1 = snap.child("bpm").val();
+            datariscoC1 = snap.child("datarisco").val();
+            idESP82C1 = snap.child("idESP82").val();
+            temperaturaC1 = snap.child("temperatura").val();
+            vezesC1 = snap.child("vezes").val();
+
+            //console.log("mHash1",mHashC1);
+            arrDataRiscoC1.push(datariscoC1);
+            arrBPMC1.push(bpmC1);
+            arridESP82C1.push(idESP82C1);
+            arrTemperaturaC1.push(temperaturaC1);
+            arrVezesC1.push(vezesC1);
+
+
+
+
+        });
+
+
+
+        //------Pegando dados da camada 2
+
+        refCamada2.on("child_added", snap => {
+
+
+
+            mHashC2 = snap.key;
+            previousHashC2 = snap.child("previousHash").val();
+            bpmC2 = snap.child("bpm").val();
+            datariscoC2 = snap.child("datarisco").val();
+            idESP82C2 = snap.child("idESP82").val();
+            temperaturaC2 = snap.child("temperatura").val();
+            vezesC2 = snap.child("vezes").val();
+
+            //console.log("mHash2",mHashC2);
+
+            arrDataRiscoC2.push(datariscoC2);
+
+
+
+            arrBPMC2.push(bpmC2);
+            arridESP82C2.push(idESP82C2);
+            arrTemperaturaC2.push(temperaturaC2);
+            arrVezesC2.push(vezesC2);
+
+
+
+        });
+
+
+        var cont = 0;
+        try {
+            //comparando MQTT com Camada 1
+            setTimeout(() => {
+
+                cont++;
+
+                var i = 0;
+                for (i = 0; i < arrHashMQTT.length; i++) {
+                    console.log("VALIDANDO....");
+
+                    if (arrDataRiscoMQTT[i] != arrDataRiscoC1[i] && arrDataRiscoC1[i] == arrDataRiscoC2[i]) {
+
+                        var resultadoCamada = refMQTT.child(arrHashMQTT[i]).update({
+
+                            datarisco: arrDataRiscoC1[i]
+
+                        });
+
+                    }
+
+
+
+                    if (arrBPMMQTT[i] != arrBPMC1[i] && arrBPMC1[i] == arrBPMC2[i]) {
+
+                        var resultadoCamada = refMQTT.child(arrHashMQTT[i]).update({
+
+                            bpm: arrBPMC1[i]
+
+
+                        });
+
+                    }
+
+
+
+
+
+                    if (arridESP82MQTT[i] != arridESP82C1[i] && arridESP82C1[i] == arridESP82C2[i]) {
+
+                        var resultadoCamada = refMQTT.child(arrHashMQTT[i]).update({
+
+                            idESP82: arridESP82C1[i]
+
+
+                        });
+
+                    }
+
+
+                    if (arrTemperaturaMQTT[i] != arrTemperaturaC1[i] && arrTemperaturaC1[i] == arrTemperaturaC2[
+                            i]) {
+
+                        var resultadoCamada = refMQTT.child(arrHashMQTT[i]).update({
+
+                            temperatura: arrTemperaturaC1[i]
+
+
+                        });
+
+                    }
+
+                    if (arrVezesMQTT[i] != arrVezesC1[i] && arrVezesC1[i] == arrVezesC2[i]) {
+
+                        var resultadoCamada = refMQTT.child(arrHashMQTT[i]).update({
+
+                            vezes: arrVezesC1[i]
+
+
+                        });
+
+                    }
+
+
+
+                }
+
+
+
+                window.location.reload(1);
+            }, 4000);
+            console.log(cont);
+
+        } catch (e) {
+            logMyErrors(e); // passa o objeto de exceção para o manipulador de erro
+        }
+    </script>
+</body>
+
+</html>

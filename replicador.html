@@ -1,0 +1,297 @@
+<html>
+    <head>
+        <title>Replicador</title>
+    </head>
+    <body>
+   <!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-database.js"></script>
+
+
+<script>
+//https://stackoverflow.com/questions/51298432/how-can-i-push-to-2-different-firebase-projects-in-one-javascript-file
+//Variaveis globais
+var mHashMQTT;
+var bpmMQTT;
+var datariscoMQTT;
+var idESP82MQTT;
+var temperaturaMQTT;
+var vezesMQTT;
+
+//Camada 1
+var mHashC1;
+var bpmC1;
+var datariscoC1;
+var idESP82C1;
+var temperaturaC1;
+var vezesC1;
+
+
+//Camada 2
+var mHashC2;
+var bpmC2;
+var datariscoC2;
+var idESP82C2;
+var temperaturaC2;
+var vezesC2;
+
+//------------------------------------------Inicializando os banco de dados
+const mqttApp = firebase.initializeApp({
+
+    apiKey: "AIzaSyCTE6-9akOrnkP9up6Rb16K37oZQPhHZaI",
+    authDomain: "mqttcontrole.firebaseapp.com",
+    databaseURL: "https://mqttcontrole.firebaseio.com",
+    projectId: "mqttcontrole",
+    storageBucket: "mqttcontrole.appspot.com",
+    messagingSenderId: "974936284084",
+    appId: "1:974936284084:web:d1879f1b19668d5ba1b0e1"
+
+});
+
+var refMQTT = mqttApp.database().ref("prontuario").child("uffdqqwl");
+
+const camada1App = firebase.initializeApp({
+
+    apiKey: "AIzaSyBYXjTvzJ0FRmUfHCD7y-719nIyA_L8nJ8",
+    authDomain: "camada1.firebaseapp.com",
+    databaseURL: "https://camada1.firebaseio.com",
+    projectId: "camada1",
+    storageBucket: "camada1.appspot.com",
+    messagingSenderId: "238288802913",
+    appId: "1:238288802913:web:e4af954878600d03844620"
+
+ 
+
+}, 'Camada 1');
+var refCamada1 = camada1App.database().ref("prontuario").child("uffdqqwl");
+
+const camada2App = firebase.initializeApp({
+
+    apiKey: "AIzaSyCziJ1jUtkBwPvYC4ByYiA6fONUbu_uyc0",
+    authDomain: "camada2.firebaseapp.com",
+    databaseURL: "https://camada2.firebaseio.com",
+    projectId: "camada2",
+    storageBucket: "camada2.appspot.com",
+    messagingSenderId: "300681473888",
+    appId: "1:300681473888:web:60510f478aa80e1460f805",
+    measurementId: "G-BQNFBHE4MJ"
+
+}, 'Camada 2');
+
+var refCamada2 = camada2App.database().ref("prontuario").child("uffdqqwl");
+
+
+
+  //Construindo a referencia do MQTT
+
+  //pegando informação para teste
+  refMQTT.on("child_added", snap=>{
+
+
+    mHashMQTT = snap.key;
+     bpmMQTT = snap.child("bpm").val();
+     datariscoMQTT = snap.child("datarisco").val();
+     idESP82MQTT = snap.child("idESP82").val();
+     temperaturaMQTT = snap.child("temperatura").val();
+     vezesMQTT = snap.child("vezes").val();
+
+   // consoleconsole.log("Hash MQTT: ", mHashMQTT);
+
+
+      //Inserido da aplicação MQTT para camada1
+       //Insere na Camada 1
+    //converte a hash anterior em base 64 para gerar uma nova hash,
+    mHashC1 = btoa(mHashMQTT);
+    
+    var resultadoCamada1 = refCamada1.child(mHashC1).set({
+
+    previousHash: mHashMQTT,
+    bpm: bpmMQTT,
+    datarisco: datariscoMQTT,
+    idESP82: idESP82MQTT,
+    temperatura: temperaturaMQTT,
+    vezes: vezesMQTT
+
+
+});
+
+
+
+
+
+
+  });
+
+
+
+//------Pegando dados da camada 1
+
+  refCamada1.on("child_added", snap=>{ 
+
+   
+
+mHashC1 = snap.key;
+previousHashC1 = snap.child("previousHash").val();
+bpmC1 = snap.child("bpm").val();
+datariscoC1= snap.child("datarisco").val();
+idESP82C1 = snap.child("idESP82").val();
+temperaturaC1 = snap.child("temperatura").val();
+vezesC1 = snap.child("vezes").val();
+
+
+
+
+//console.log("mHashC1: ",mHashC1);
+
+//console.log("mHasMQTT: ",mHashMQTT);
+
+
+
+
+
+
+
+
+//console.log("Hash C1: ",mHashC1);
+//console.log("Previous Hash na camada C1: ",previousHashC1);
+
+
+mHashC2 = btoa(mHashC1);
+//console.log("mHashC2: ",mHashC2);
+
+
+
+//Inserindo na camada 2
+refCamada2.child(mHashC2).set({
+
+  
+
+previousHash: mHashC1,
+bpm: bpmC1,
+datarisco: datariscoC1,
+idESP82: idESP82C1,
+temperatura: temperaturaC1,
+vezes: vezesC1
+
+
+
+});
+
+
+
+
+
+
+});
+
+
+
+
+//------Pegando dados da camada 2
+
+refCamada2.on("child_added", snap=>{ 
+
+   
+
+mHashC2 = snap.key;
+previousHashC2 = snap.child("previousHash").val();
+bpmC2 = snap.child("bpm").val();
+datariscoC2= snap.child("datarisco").val();
+idESP82C2 = snap.child("idESP82").val();
+temperaturaC2 = snap.child("temperatura").val();
+vezesC2 = snap.child("vezes").val();
+
+
+
+});
+
+
+//------------------------------------Função para comparar os blocos
+// 0 = igual -1 diferente
+
+
+try{
+//comparando MQTT com Camada 1
+setTimeout(() => {
+
+/*
+var compareHashMQTTC1 = mHashMQTT.localeCompare(previousHashC1);
+var compareHashC1C2 = mHashC1.localeCompare(previousHashC2);
+
+
+var compareBPMMQTTC1 =bpmMQTT.toString().localeCompare(bpmC1.toString());
+var compareBPMC1C2 = bpmC1.toString().localeCompare(bpmC2.toString());
+var compareBPMC2C1 = bpmC2.toString().localeCompare(bpmC1.toString());
+
+var compareDataRiscoMQTTC1 = datariscoMQTT.toString().localeCompare(datariscoC1.toString());
+var compareDataRiscoC1C2 = datariscoC1.toString().localeCompare(datariscoC2.toString());
+var compareDataRiscoC2C1 = datariscoC2.toString().localeCompare(datariscoC1.toString());
+
+
+var compareIdEsp82MQQTC1 = idESP82MQTT.toString().localeCompare(idESP82C1.toString());
+var compareIdEsp82C1C2 = idESP82C1.toString().localeCompare(idESP82C2.toString());
+var compareIdEsp82C2C1 = idESP82C2.toString().localeCompare(idESP82C1.toString());
+
+var compareTemperatureMQQTC1 = temperaturaMQTT.toString().localeCompare(temperaturaC1.toString());
+var compareTemperatureC1C2 = temperaturaC1.toString().localeCompare(temperaturaC2.toString());
+var compareTemperatureC2C1 = temperaturaC2.toString().localeCompare(temperaturaC1.toString());
+
+
+var compareVezesMQQTC1 = vezesMQTT.toString().localeCompare(vezesC1.toString());
+var compareVezesC1C2 = vezesC1.toString().localeCompare(vezesC2.toString());
+var compareVezesC2C1 = vezesC2.toString().localeCompare(vezesC1.toString());
+
+
+if(compareBPMMQTTC1 == 0){
+    console.log("BPM iguais: ");
+
+}*/
+
+
+
+var arrBPM = [];
+
+arrBPM.push(bpmMQTT, bpmC1, bpmC2);
+
+
+
+for(i = 0; i < arrBPM.length; i++){
+    console.log(arrBPM[i]);
+}
+
+if(arrBPM[0] != arrBPM[1] ){
+    console.log("Bingo");
+  
+}
+
+
+/*var len = arrBPM.length;
+
+var i;
+for(i = 0; i < arrBPM.length; i++){
+    console.log(arrBPM[i]);
+
+    if(arrBPM[i] != arrBPM[i]){
+        console.log("i-1",arrBPM[(i+len-1)%len]);
+
+    }else{
+        console.log("i-1",arrBPM[(i+len-1)%len]);
+    }
+}*/
+
+}, 1500);
+
+}catch(e){
+    logMyErrors(e); // passa o objeto de exceção para o manipulador de erro
+}
+
+
+
+
+
+
+
+</script>
+
+    </body>
+</html>
